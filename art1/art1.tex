@@ -1,0 +1,114 @@
+\documentclass[conference]{IEEEtran}
+% Include all packages from file.
+% Article template for Imperial College Software Engineering for Industry course
+% Based on report template for Mälardalen University
+% Original template can be found:
+% https://www.overleaf.com/latex/templates/ieee-bare-demo-template-for-conferences/ypypvwjmvtdf
+% Template file structure organised by: Emil Persson
+% The following packages should follow the IEEE conference guidelines.
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Graphics
+\usepackage{graphicx, float, subfigure, blindtext}
+\newcommand\IEEEhyperrefsetup{
+    bookmarks=true,bookmarksnumbered=true,%
+    colorlinks=true,linkcolor={red},citecolor={red},urlcolor={black}%
+}
+
+% Preferred hyperref setup, Michael Shell
+\usepackage[\IEEEhyperrefsetup, pdftex]{hyperref}
+
+% These packages must be at the end
+\usepackage[nolist,nohyperlinks]{acronym}
+\usepackage{cleveref}
+\graphicspath{{images/}}
+
+% Remove section first paragraph indent
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{*1}{*1}
+\titlespacing*{\subsection}{0pt}{*1}{*1}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}}
+\titleformat{\subsubsection}[runin]{\itshape}{\thesubsubsection)}{1em}{}[:]
+\titlespacing*{\subsubsection}{\parindent}{0pt}{*1}
+
+
+% The article title.
+\title{Can Large Companies Benefit From Lean Ideas}
+
+% Document begins here
+\begin{document}
+
+    \author{Anonymous for Review}
+
+% Create the title.
+    \maketitle
+
+% Example sections, name them
+% according to specific needs.
+    \begin{abstract}
+        Large companies can benefit from some ideas of Lean methodology without fully embracing it because, while startups and large companies have different objectives, they share some of the same problems.
+    \end{abstract}
+
+
+    \section{A Large Corporation's Goals}
+    \label{section:intro}
+    Startups have fundamentally different goals from a big company.
+    Startups are experiments~\cite{theLeanStartup}, in the sense that they have ideas that hope to disrupt the market to find new revenue opportunities.
+    These ideas are hypotheses, tested by launching products and currently do not have a viable market.
+    An established company has products in production and a steady
+    revenue stream in a proven market and is not looking to test hypotheses about customers with each new release.
+    On the contrary, its releases tend to have the goal of improving existing customer experience.
+
+    At their core, lean ideas focus on minimising the time it takes from having an idea, to validating the idea - this can also be seen as shortening the feedback loop between an idea and its impact on customers.
+
+    \section{Why Larger Corporations Should Use Lean Ideas}
+    Startups suffer the risk of building things well that nobody wants~\cite{theLeanStartup}.
+    Large companies do not have the same problem: they already have products with active customers, and
+    the problems they may try to solve can be well-known to them because they are similar to problems
+    they have encountered in the past.
+
+    This does not mean there is no point in them tightening the feedback
+    loop with their customers! Feedback is useful for many purposes, not just for launching disruptive market innovations.
+    If a company makes a poor release, it is urgent that a technical team becomes aware of the problem as quickly as possible
+    (especially in systems that deal with financial products, like in fintech).
+    For this problem Lean ideas like live application monitoring~\cite{dragichApm} and cohort analysis~\cite{theLeanStartupBlog} are very well-suited solutions.
+
+    Large companies may also need to innovate (to release a new product or feature, for example) in which
+    case lean methodology like customer advisory boards or falsifiable hypotheses are very
+    relevant~\cite{theLeanStartupBlog}.
+    Innovation and lean methodologies can allow an established company to expand towards a new market segment - especially if the company's main market is declining. This is what happened with \textit{Coca-Cola}, who faced a big decline in demand for soft drinks and acquired the coffee store \textit{Costa} in order to switch market segments and attempt to create a new revenue stream \cite{coke}.
+    Diversifying a company's activities into new markets also serves to lower systemic risk through diversification as with a financial portfolio. Lastly, innovation can help to get ahead of competition by expanding into complementary markets. This is for example the case with \textit{Tesla}, which combines car manufacturing with Artificial Intelligence, from algorithms to chip manufacturing. This allows them to combine both technologies in a result which is greater than the sum of its parts by making fully self driving cars that are, as of now, ahead of competition.
+
+    \section{Why Larger Corporations Should Not Use Lean Ideas}
+
+    As large corporations already have a customer base, they have an authority to help guide their decisions. As such, an iterative process based on agile methodologies whereby features are tested as soon as possible with customers to get feedback can be preferable. Large corporations may have greater benefits from further exploiting their currently established customer base rather than searching for a new market segment which might not be worth the risk.
+
+    Furthermore, there is the danger for large companies to get stuck in never ending new projects which started as supposedly temporary experiments.
+    Such projects can end up as long-running resource drains (sometimes significant enough to affect the main revenue stream) partly due to employees clinging to their brain-child, and doubling down because of the already-sunk efforts.
+% a long march of death due to bureaucracy and people clinging onto it.
+% The project can gradually hog more and more resources until it starts draining resources from the main revenue stream of the company.
+    In a startup setting, there are less resources that allow indulging such projects once it's been shown they are not profitable.
+
+%would be no more cash to support the company which would have to inevitably close down. Large companies have the added danger of that project attracting resources from main products and can keep the illusion of sunken costs for longer.
+    For example, in 2017, the French telecommunications company \textit{Orange} launched \textit{Orange Bank} as a way to branch out from their main market. The project has been greatly under-performing and as of 2021, losses have totalled €627 million and the date of expected profitability keeps getting pushed back \cite{orange}.
+
+    \section{Conclusion}
+    \label{section:conclusion}
+
+    While not all Lean methodology is relevant to a large company, many of its goals (like tightening the
+    feedback loop with customers) are aligned with those of a startups. For these cases, and when relevant
+    and possible, large companies can greatly benefit from this paradigm.
+%However, there is a balance to be had between risk and reward.
+    Using startup methodology to expand into a new market can be greatly rewarding but also very risky: if a large company still has a lot of opportunities in its established market it might not be worth the risk.
+    On the other hand, if a large company is in need for diversification and expansion Lean startup methodology can be useful.
+
+    All in all, the ideal compromise between risk and reward varies depending
+    on the scale and maturity of a company, and Lean methodology should be adopted accordingly.
+
+% i'd say it's about risk and reward. Lean methodology is quite risky and if a big company already has loads to do in its segment it's not worth the risk of switching to a new one
+
+    \bibliographystyle{IEEEtran}
+    \bibliography{IEEEabrv,refs}
+\end{document}

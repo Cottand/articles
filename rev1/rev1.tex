@@ -1,0 +1,105 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Graphics
+\usepackage{graphicx, float, subfigure, blindtext}
+\newcommand\IEEEhyperrefsetup{
+    bookmarks=true,bookmarksnumbered=true,%
+    colorlinks=true,linkcolor={red},citecolor={red},urlcolor={black}%
+}
+
+% Preferred hyperref setup, Michael Shell
+\usepackage[\IEEEhyperrefsetup, pdftex]{hyperref}
+
+% These packages must be at the end
+\usepackage[nolist,nohyperlinks]{acronym}
+\usepackage{cleveref}
+\graphicspath{{images/}}
+
+% Remove section first paragraph indent
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{*1}{*1}
+\titlespacing*{\subsection}{0pt}{*1}{*1}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}}
+\titleformat{\subsubsection}[runin]{\itshape}{\thesubsubsection)}{1em}{}[:]
+\titlespacing*{\subsubsection}{\parindent}{0pt}{*1}
+
+
+% The article title.
+\title{Peer Review for \textit{How big companies benefit from Lean Startup}}
+
+% Document begins here
+\begin{document}
+
+    \author{}
+
+% Create the title.
+    \maketitle
+
+    While this article does conform to formatting requirements, it includes some unfortunate
+    typos~(such as \textit{`approxiamtely'}), grammar mistakes~(like forgetting determinants -
+    \textit{`product'} vs. \textit{`a product'}), typography missteps~(like forgetting
+    whitespace before a parenthesis), as well as conjugation errors (\textit{`Drew Houston [...],
+    was struggled...')}.
+
+
+    \section{Introduction}
+
+    Citing specific principles of lean startup methodology is great - it also
+    allows the reader to look those up on their own.
+
+
+    \section{Body}
+    The lack of paragraphs throughout the entire section makes reading it
+    slightly difficult.
+
+    \subsection{MVP Subsection}
+
+
+    While the section is well-documented and factually correct, it goes to great lenghts to explain
+    some lean ideas (like what an \emph{MVP} is at all) and list their benefits
+    without actually making much of a point in how these benefit specifically large
+    companies.
+
+    The examples given, while also correct, are actually examples of startups
+    (Dropbox, Amazon...) which makes it even harder to see how lean
+    ideas are applicable \emph{to companies other than} startups.
+
+    \subsection{Innovation Accounting subsection}
+
+    The article does assume the only driver for large companies' revenue is
+    innovation~(`\textit{Innovation drives the sustainable development of these large companies}')
+    - but one could argue Facebook's main revenue stream is its advertising business
+    (rather than its VR and AR spinoffs) and that Apple's is smartphones (and not music and video
+    streaming).
+
+    Like the article itself argues, some companies' focus can be maintenance instead
+    of innovation.
+    How does lean methodology help there? \\
+
+    \section{Review Veredict}
+
+    While well cited, factual, and somewhat structured (it does well to limit its scope the article
+    only somewhat answers the given question.
+
+    It goes on to mainly list
+    benefits of lean methodology rather than pointing out how they might be useful outside of the
+    innovation business of startups: not all companies are looking to disrupt markets!
+    The article answers to `\emph{How big companies benefit from Lean Startup}' rather than
+    `\emph{To what degree can larger corporations benefit from lean startup ideas?}'.
+
+    The difference is subtle but important: the latter also encourages to question
+    whether lean startup ideas might hinder large corporations and actually have drawbacks.
+    This article mostly says `Lean ideas are good because ...' but fails to explain
+    where they should not be applied.
+    Only a brief consideration is made in this direction with the
+    last sentence (`\textit{However, it’s worth noting that Lean Startup is not suitable for mature
+    businesses within large companies, where the focus is no longer innovation but maintenance.}'),
+    which is great, but the article failed to go beyond the obvious and say \emph{why} this is the
+    case, or to what extent.\\
+
+    On the other hand, the level of presumed knowledge is great!
+    The article goes through the trouble of explaining the Build-Measure-Learn and Innovation
+    Accounting principles, as well as `the point' of lean methodology.
+\end{document}
