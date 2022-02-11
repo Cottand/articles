@@ -1,0 +1,90 @@
+\documentclass[conference]{IEEEtran}
+% Include all packages from file.
+% Article template for Imperial College Software Engineering for Industry course
+% Based on report template for Mälardalen University
+% Original template can be found:
+% https://www.overleaf.com/latex/templates/ieee-bare-demo-template-for-conferences/ypypvwjmvtdf
+% Template file structure organised by: Emil Persson
+% The following packages should follow the IEEE conference guidelines.
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Graphics
+\usepackage{graphicx, float, subfigure, blindtext}
+\newcommand\IEEEhyperrefsetup{
+    bookmarks=true,bookmarksnumbered=true,%
+    colorlinks=true,linkcolor={red},citecolor={red},urlcolor={black}%
+}
+
+% Preferred hyperref setup, Michael Shell
+\usepackage[\IEEEhyperrefsetup, pdftex]{hyperref}
+
+\usepackage[backend=bibtex,style=ieee,natbib=true]{biblatex} % Use the bibtex backend with the authoryear citation style (which resembles APA)
+\addbibresource{refs.bib}
+
+% These packages must be at the end
+\usepackage[nolist,nohyperlinks]{acronym}
+\usepackage{cleveref}
+\graphicspath{{images/}}
+
+% Remove section first paragraph indent
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{*1}{*1}
+\titlespacing*{\subsection}{0pt}{*1}{*1}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}}
+\titleformat{\subsubsection}[runin]{\itshape}{\thesubsubsection)}{1em}{}[:]
+\titlespacing*{\subsubsection}{\parindent}{0pt}{*1}
+
+
+% The article title.
+\title{Case Study of \emph{Blockchain.com}, a Fast-growing Cryptocurrency Company}
+
+% Document begins here
+\begin{document}
+
+    \author{Nicolás D'Cotta}
+
+% Create the title.
+    \maketitle
+
+% Example sections, name them
+% according to specific needs.
+    \begin{abstract}
+        Blockchain is a crypto finance house that scaled up fivefold in
+        employees in less than a couple of years.
+        This article looks into the challenges it faced scaling up human and
+        technical resources (mostly drawing from personal experience) and reflects
+        on what worked well and what did not.
+    \end{abstract}
+
+    \section{Blockchain's Size, Business Model and Stack}\label{sec:business}
+
+    I have worked at Blockchain for little under 2 years and during that time I was able to observe
+    how the company went from about 110 employees to more than 500 at the time of writing (with many
+    of the new joiners being engineers), transformed into a remote-first organisation~(largely because
+    of the coronavirus), grew an institutional business, and tripled its existing retail business.
+
+    The company started in 2011 as a free simple blockchain explorer~\cite{bcAbout} that later
+    begun offering non-custodial online Bitcoin wallets.
+    When I joined, it had around 40 million active wallets in several cryptocurrencies,
+    a brokerage service (to buy and sell crypto to users), as well as a recent currency
+    exchange (where users trade with each other, not unlike Coinbase~\cite{coinbasePro}).
+
+    This is implemented with a microservices architecture, with some services
+    being much larger than others.
+
+
+
+    \section{Scaling Up Systems}
+
+    Zero-Downtime deployability\\
+    Organizational autonomy
+    \section{Scaling Up People}
+    \section{Moving Fast in a Regulated Environment}
+
+
+    \printbibliography
+%    \bibliographystyle{IEEEtran}
+\end{document}
+
