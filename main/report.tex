@@ -19,10 +19,8 @@
 
 % Preferred hyperref setup, Michael Shell
 \usepackage[\IEEEhyperrefsetup, pdftex]{hyperref}
-
 \usepackage[backend=bibtex,style=ieee,natbib=true]{biblatex} % Use the bibtex backend with the authoryear citation style (which resembles APA)
 \addbibresource{refs.bib}
-
 % These packages must be at the end
 \usepackage[nolist,nohyperlinks]{acronym}
 \usepackage{cleveref}
@@ -79,16 +77,99 @@
     \section{Scaling Up Systems}
     We call the larger services \emph{core services}, and they are further split into modules.
 
-    This results in a hybrid of microservices with a
-    couple monoliths.
-    When adding a new feature, depending on its scope and the data it needs, it
-    is either built into a microservice or simply inside an existing core service.
-    If, further down the line, it is decided it needs to grow further, it can get moved out of a core service into a
-    new microservice.
+    This results in a hybrid of microservices with a couple monoliths.
+    When adding a new feature, depending on its scope and the data it needs, it is either built into
+    a microservice or simply inside an existing core service.
+    If, further down the line, it is decided it needs to grow further, it can get moved out of a
+    core service into a new microservice.
 
+    \subsection{Dealing With Large Services}
 
-    Zero-Downtime deployability\\
-    Organizational autonomy
+    Something the team noticed about the core services around 2019 is that when they were large
+    enough, compilation and testing times were no longer negligible: from a commit in a feature
+    branch being pushed, it took 50 minutes for the retail core service to compile and test
+    (after which the branch could be merged into \texttt{master}).
+    After the merge, CI took another 50 minutes to test and build again (the new merge commit
+    may not be building the exact same artifact as the previous test run) to produce
+    the docker image that could then be deployed.
+
+    Developers also need to get two approving reviews in order to merge, so overall we would
+    expect around two hours from the moment we pushed a commit to the moment we were able to deploy it.
+    This is, of course, assuming the commit was good straight away: if the CI runs reported
+    test failures, at least another 50m had to be accounted for.
+    % TODO citation
+    The causes of the problem were mainly large codebases in Kotlin (which did not compile very fast in version 1.3)
+    and the fact that code generation was involved in the building process.
+
+    It was in order to mitigate this that modules were introduced in the core services, making them
+    as small as possible.
+    The modules are dynamically linked (due to the nature of the JVM) and so compilation artifacts
+    can now be cached for each module in CI persistent storage, which is hosted by a cloud provider
+    and scaled dynamically with the number of concurrent builds.
+
+    Therefore, when modifying a module, developers only need to wait for that module's compilation,
+    its tests, and the integration tests -- binaries and test results from other modules are reused.
+    Additionally, developers' build tools (in this case, gradle) are given remote read
+    access to the build cache, so their local compilation times also massively improved.
+
+    After the modularisation of the core services and the implementation of the build cache, builds
+    improved dramatically (most commonly down to 10 minutes per build) both locally and on CI, and
+    core services became much easier to break up.
+    This shows Blockchain leveraging cloud to scale tooling (not servers in production) that speeds
+    up iteration -- and therefore shortens the feedback loop for a feature.
+
+    \subsection{Zero-downtime}
+
+    Unlike more traditional markets and trading platforms, crypto markets are usually always open.
+    Therefore, downtime translates to losses for the business, so zero-downtime deployability is
+    very desirable.
+
+    While there is no company-wide policy, the platform team tries to have always 2 instances
+    of every service running at all times.
+    This allows for the following:
+
+    \begin{itemize}
+        \newcommand{\entry}[1]{\item[] \hspace{-1em}\textbf{#1}}
+        \entry{Blue/Green delpoyments}~\cite{nomadBlueGreen} where one instance of the
+        service at a time is updated to the new version.
+        Once an instance has been serving traffic for a short while, it is marked as `healthy', and
+        the next instance is updated.
+        This means that even during a new release, there is always an instance serving traffic.
+        \entry{Higher Availability} -- if an instance crashes, the load balancer can direct traffic
+        to the other (hopefully still healthy) instance while the unhealthy one is restarted.
+        \entry{Stateless Services} -- developers are aware that whatever new service they are
+        writing, it will most likely be running two instances from the start.
+        This encourages (but does not force) engineers to write stateless services, so they will not
+        have to bother with mechanisms like leader election.
+        \footnote{\textbf{Leader Election} is a mechanism where a cluster of servers agree on a
+        `leader' among them to run tasks that cannot be parallelized~\cite{attiya2004distributed}.}
+    \end{itemize}\\
+
+    In practice, always running more than a single instance of a service from the start is a mostly
+    successful policy, but there are some downsides.
+
+    Firstly, it is costly -- plenty of microservices could cope with load on a single instance just
+    fine, but still run two.
+    This is mitigated with containers, as opposed to using a machine for each
+    instance.
+
+    Secondly, some services cannot easily be made stateless (examples include polling services
+    and the ledger), so we must choose between a single instance or several instances with leader
+    election mechanisms.
+    For the sake of less downtime, the latter is usually preferred;
+    which means engineers need to reason about leadership when developing these services.
+
+    \subsection{Even-Driven Services}
+
+    \texttt{TODO do only if covered in course?}
+
+    For reasons described in~\ref{subsec:ul}, lots of services are modeled after Finite State
+    Machines.
+    This encourages developers to think of their applications as things that `wait for events'
+    rather than things that `are called', allowing for an \emph{event-driven}
+    design~\cite{fowlerEventDriven}.
+
+    This provide some benefits, like \emph{Event-Sourcing} (discussed in~\ref{sec:regulated}).
 
 
     \section{Scaling Up People}
@@ -107,14 +188,15 @@
     other -- this allowed the two teams to not step on each other's toes).
     This shows Blockchain trying to leverage Conway's Law~\cite{conwayLaw}.\\
 
-    \subsection{Ubiquitous Language}
+    \subsection{Ubiquitous Language}\label{subsec:ul}
 
-    Another paradigm that facilitated Blockchian's fast growth was the idea of having a
-    \emph{Ubiquitous Language} (or \emph{UL}).
+    Another paradigm that facilitated Blockchain's fast growth was the idea of having a
+    \emph{Ubiquitous Language} (or \emph{UL})~\cite{evansDomainDrivenDesignUL, fowlerUL}.
     The goal is to have some form of documentation that describes the functioning of a `flow' (like
     the process for withdrawing crypto from the exchange).
+    This from of communication should be understood by engineers as well as the product team.
 
-    These are represented as Finite State Machine (FSM) diagrams, designed to have well-named states and
+    Flows are represented as Finite State Machine (FSM) diagrams, designed to have well-named states and
     state transitions depending on each interaction with the user, other microservices, and external
     services.
     Forcing some backend teams to think of flows as Finite State Machines allows implementing
@@ -127,7 +209,12 @@
     a bus, then the company would be in serious trouble.
     The reason for this was probably a mix of high rotation of employees due to varying competitive
     salaries in the crypto industry (so team members that remained became senior very quickly) and
-    complex critical legacy code that only some understood.\\
+    complex critical legacy code that only some understood.
+
+    While the idea of UL is nothing new (\cite{evansDomainDrivenDesignUL} is from 2004) I personally
+    think Blockchain took an innovative approach in that they took it to the extreme by using FSMs
+    and diagrams and exposing product to them, rather than simply conforming to \emph{`a common [...]
+    language between developers and users'} (as described by Martin Fowler in~\cite{fowlerUL}).\\
 
     The idea of Ubiquitous Language was successful, to some extent.
     Drawing Finite State Machine diagrams do make it very easy to communicate a flow or a feature while
@@ -140,10 +227,10 @@
     struggle to write in an actor model at first -- it is also harder to find new hires that know the
     paradigm well.
     Furthermore, having to represent state transitions for every single side effect and call (and the
-    states resulting from their failures) require large amounts fo boilerplate -- code that
+    states resulting from their failures) requires large amounts fo boilerplate -- code that
     traditionally would have been a simple \emph{try-catch} in Kotlin or Java.
 
-    \section{Growing in a Financial Regulated Environment}
+    \section{Growing in a Financial Regulated Environment}\label{sec:regulated}
 
     As a company operating in the finance industry, which is heavily regulated, and dealing
     with large monetary amounts;
@@ -170,6 +257,7 @@
     This means that then we must deal with different serialisation versions and worry about
     backwards compatibility between them.
 
+    \section{In Retrospective}
 
     \printbibliography
 \end{document}
