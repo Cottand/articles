@@ -109,7 +109,7 @@
 
     Therefore, when modifying a module, developers only need to wait for that module's compilation,
     its tests, and the integration tests -- binaries and test results from other modules are reused.
-    Additionally, developers' build tools (in this case, gradle) are given remote read
+    Additionally, developers' build tools (in this case~\emph{Gradle}~\cite{gradle.org}) are given remote read
     access to the build cache, so their local compilation times also massively improved.
 
     After the modularisation of the core services and the implementation of the build cache, builds
@@ -158,6 +158,13 @@
     election mechanisms.
     For the sake of less downtime, the latter is usually preferred;
     which means engineers need to reason about leadership when developing these services.
+
+    Finally, Blue/Green deployments do have a price: deployments are much slower because not
+    all instances are updated at once.
+    For services that take a long time to start up (5 minutes) and have lots of instances (say 15)
+    it can take more than 40 minutes for the old containers to be completely phased out.
+    This makes updating urgent issues in production much slower than if old containers were stopped
+    straight away.
 
     \subsection{Even-Driven Services}
 
@@ -214,7 +221,7 @@
     While the idea of UL is nothing new (\cite{evansDomainDrivenDesignUL} is from 2004) I personally
     think Blockchain took an innovative approach in that they took it to the extreme by using FSMs
     and diagrams and exposing product to them, rather than simply conforming to \emph{`a common [...]
-    language between developers and users'} (as described by Martin Fowler in~\cite{fowlerUL}).\\
+        language between developers and users'} (as described by Martin Fowler in~\cite{fowlerUL}).\\
 
     The idea of Ubiquitous Language was successful, to some extent.
     Drawing Finite State Machine diagrams do make it very easy to communicate a flow or a feature while
@@ -227,8 +234,79 @@
     struggle to write in an actor model at first -- it is also harder to find new hires that know the
     paradigm well.
     Furthermore, having to represent state transitions for every single side effect and call (and the
-    states resulting from their failures) requires large amounts fo boilerplate -- code that
+    states resulting from their failures) requires large amounts of boilerplate -- code that
     traditionally would have been a simple \emph{try-catch} in Kotlin or Java.
+
+    \subsection{\textsc{COVID-19} and Remote Work}
+
+    \subsection{Squads and Organisation Topology}\label{subsec:squads}
+
+    Around June 2020, Blockchain decided to adopt Squads to organise their teams.
+    The variation of squads they adopted includes a Product Owner and a Tech lead, as well as cross-functional representatives of other teams (such as Platform, Mobile, Marketing, etc).
+    This organisation is similar to the one Spotify presents in~\cite{spotifySquads}, with some key differences:
+    \begin{itemize}
+        \item The presence of the Tech Lead (TL).
+        They are responsible for making important technical decisions (typically the ones involving compromises in cost or tech debt), coordinating engineers of different domains within a squad, and deciding which engineers are needed for this squad (this involves negotiating resources and priorities with other TLs).
+        \item No chapters.
+        \item Guild leads are Line Managers (LMs) of people in that guild.
+        For example, the brokerage team has a lead that manages around 4 engineers, distributed across squads.
+        \item People can exist outside of squads, in specialised service teams.
+        The ledger team is a good example of this: most of the daily work does not involve a PO but rather making sure it can scale up with company growth.
+        When a whole new feature does involve the ledger, a ledger team member gets pulled into that feature's squad for a period of time.
+        \item A person can belong in more than a single squad.
+    \end{itemize}
+
+    Motivations for this significant re-shuffling were that traditional teams had become too large to coordinate internally.
+    For example, before the migrating to squads the retail backend team (a subset of the much larger platform team) had 10 members involved in daily stand-ups.
+    Such meetings only became bothersome to the team after it grew bigger than its 4 original members.
+    After squads, this daily stand-up became a much more informal weekly guild meeting.
+
+    % TODO pickup
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\columnwidth]{bcSquads}
+        \caption{Squad Structure at Blockchain}
+        \label{fig:squad}
+    \end{figure}
+
+    \subsection{Operations Responsibilities and SRE}
+
+    All development teams are responsible for performing releases of their services and performing the plumbing necessary to achieve a deployment pipeline.
+    The Site Reliability Engineering team (SRE) is a specialised team of developers that aims to facilitate this.
+    The practice was originally pioneered by Google~\cite{googleSreIntro} and Blockchain follows it at a smaller scale.
+
+    At Blockchain, SRE builds tooling that allows developers to deploy and maintain their services, but devs maintain the responsibilities of production incident response, pipeline development, releases, provisioning, etc.
+
+    This will be more easily illustrated by example.
+    If a developer wishes to set up a new microservice, they create the git
+    repository themselves and write a CI pipeline configuration.
+    To `activate' the pipeline, SRE provides a tool that allows using this configuration in Blockchain's cluster (something the dev does not need to worry about).
+    The developer may then make a pull request (PR) to a special configuration repository managed by SRE\@.
+    The PR mostly contains simple information like the name of the new service, the resources it needs, and a Docker repository where container images are hosted.
+    Once merged and approved by an SRE member, the service is considered \emph{provisioned}, meaning that there are now servers ready to run its Docker image.
+    The developer can then deploy such an image (ideally built in the CI pipeline) by using a CLI tool (developed by SRE) that specifies the image tag.
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.6\columnwidth]{sreAsAService}
+        \caption{SRE interactions with other teams}
+        \label{fig:sre}
+    \end{figure}
+
+    The structure of SRE within the company is informally portrayed in Fig.~\ref{fig:sre}.
+    I personally found this organisation very productive for the following reasons:
+    \begin{itemize}
+        \item Developers maintain important operations responsibilities and own the CI pipeline (critical in the release process).
+        \item Developers do not need to worry about maintaining a significant part of the stack that is hidden away from them: SRE takes care of things like DNS, load balancing between instances of the same service, negotiating resources with cloud providers and maintenance of on-premises infrastructure.
+        \item Developers still have freedom to achieve their desired setups without compromising with friction, and this is reflected in the diversity of practices across teams.
+        Some teams perform Continuous Delivery (where the code in the \texttt{master} branch corresponds to the microservice in production), others perform releases manually via the CLI; some run JVM services, others Rust or C++;
+        some services run with cloud providers while the most sensitive ones run on-premises, etc.
+        \item Most tooling provided by SRE, including server provisioning, is automated, meaning communication overhead is minimal.
+        % TODO revise
+        In practice, having an SRE team feels a like having infrastructure as a service within the company.
+    \end{itemize}
+
 
     \section{Growing in a Financial Regulated Environment}\label{sec:regulated}
 
@@ -256,6 +334,7 @@
     pass around.
     This means that then we must deal with different serialisation versions and worry about
     backwards compatibility between them.
+
 
     \section{In Retrospective}
 
