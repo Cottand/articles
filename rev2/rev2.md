@@ -8,6 +8,7 @@ use microservices, which is the core of the discussion.
 
 I knew about gateways as a pattern for microservice architectures, but not
 about Uber's particular case and the name of their methodology, _DOMA_.
+That was interesting!
 
 The case study is also well-referenced and so it is easy to verify it is
 also factually correct.
@@ -23,7 +24,7 @@ Otherwise it would have been very interesting _why_ microservices worked
 for Netflix and not Uber - what were they doing differently?
 
 Unfortunately, the article only slightly covered the broader business contexts of the case studies listed:
-how are Uber, Netflix and Istio different? (other than the fact that Istio does not need tos cale up quickly)
+how are Uber, Netflix and Istio different? (other than the fact that Istio does not need to scale up quickly)
 
 
 ### Review Veredict

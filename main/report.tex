@@ -36,7 +36,7 @@
 
 
 % The article title.
-\title{Case Study of \emph{Blockchain.com}, a Fast-growing Cryptocurrency Company}
+\title{Detailed Case Study of \emph{Blockchain.com}, a Fast-growing Cryptocurrency Company}
 
 % Document begins here
 \begin{document}
@@ -54,6 +54,8 @@
         This article looks into the challenges it faced scaling up human and
         technical resources (mostly drawing from personal experience) and reflects
         on what worked well and what did not.
+
+        Topics covered include microservices, combining agile with a regulated environment, the organisation's topology, Conway's Law, and SRE.
     \end{abstract}
 
 
@@ -289,7 +291,7 @@
 
     \begin{figure}[h]
         \centering
-        \includegraphics[width=0.6\columnwidth]{sreAsAService}
+        \includegraphics[width=0.67\columnwidth]{sreAsAService}
         \caption{SRE interactions with other teams}
         \label{fig:sre}
     \end{figure}
@@ -305,6 +307,11 @@
         \item Most tooling provided by SRE, including server provisioning, is automated, meaning communication overhead is minimal.
         % TODO revise
         In practice, having an SRE team feels a like having infrastructure as a service within the company.
+        \item Teams can still achieve more complex setups with SRE as enablers
+        if they desire.
+        A good example is the markets team, which pins threads to individual
+        CPUs and performs networking bypassing the kernel in order to achieve
+        minimal latencies.
     \end{itemize}
 
 
