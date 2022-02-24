@@ -1,0 +1,116 @@
+\documentclass[conference]{IEEEtran}
+% Include all packages from file.
+% Article template for Imperial College Software Engineering for Industry course
+% Based on report template for Mälardalen University
+% Original template can be found:
+% https://www.overleaf.com/latex/templates/ieee-bare-demo-template-for-conferences/ypypvwjmvtdf
+% Template file structure organised by: Emil Persson
+% The following packages should follow the IEEE conference guidelines.
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Graphics
+\usepackage{graphicx, float, subfigure, blindtext}
+\newcommand\IEEEhyperrefsetup{
+    bookmarks=true,bookmarksnumbered=true,%
+    colorlinks=true,linkcolor={red},citecolor={red},urlcolor={black}%
+}
+
+% Preferred hyperref setup, Michael Shell
+\usepackage[\IEEEhyperrefsetup, pdftex]{hyperref}
+\usepackage[backend=bibtex,style=ieee,natbib=true]{biblatex} % Use the bibtex backend with the authoryear citation style (which resembles APA)
+\addbibresource{refs.bib}
+% These packages must be at the end
+\usepackage[nolist,nohyperlinks]{acronym}
+\usepackage{cleveref}
+\usepackage[nodayofweek]{datetime}
+
+% Remove section first paragraph indent
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{*1}{*1}
+\titlespacing*{\subsection}{0pt}{*1}{*1}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}}
+\titleformat{\subsubsection}[runin]{\itshape}{\thesubsubsection)}{1em}{}[:]
+\titlespacing*{\subsubsection}{\parindent}{1pt}{*1}
+
+
+% The article title.
+\title{When Are Microservice Architectures Beneficial?}
+
+% Document begins here
+\begin{document}
+
+    \author{William Profit and Nicolás D'Cotta --
+    \formatdate{21}{02}{2022} \emph{(last modified~\today)}}
+
+% Create the title.
+    \maketitle
+
+% Example sections, name them
+% according to specific needs.
+    \begin{abstract}
+        We show there are several variations of microservices architectures and (mostly drawing from articles and personal experience) highlight possible motivations to adopt
+        some of them; while also reflecting on the price to pay for such adoptions and on some of
+        their pitfalls. We conclude that the trade-off is in terms of availability, team structure, and cost.
+    \end{abstract}
+
+
+    \section{A Company's Options}
+
+    \emph{Microservices} is a widely used umbrella term to refer to a platform architecture that is not monolithic and not serverless.
+    Beyond this, definitions remain vague, but in general they refer to having multiple servers that communicate over the network and are not necessarily owned by the same teams~\cite{awsMicroServicesDef}.
+
+    When developing a new platform, a company has more options that just choosing `whether to adopt a microservices architecture' -- according to Sam Newman, it is not a `yes or no' decision~\cite{microservicesNotBinary}.
+    In particular, it can use \textbf{a single monolith}, a \textbf{modularised monolith} (where modules are developed separately with stable binary APIs and compiled into the same executable), a \textbf{coarse grained distribution} (services are not necessarily small, teams manage a handful services at most) or a
+    \textbf{fine-grained distribution} (new services are spun up whenever new functionality needs to be added);
+    with even more variations in-between (should services share libraries?).
+
+
+    \section{The benefits of microservices}
+
+    Turning to a microservice architecture can have several advantages that could benefit a company.
+    From a management perspective, it can become difficult for large companies to coordinate many engineers working on a single large monolith.
+    Microservices lend themselves well to giving individual teams one or few services to develop and maintain which decouples teams from each other thus reducing friction~\cite{awsTeamPart}.
+    They also allow for finer-grained independent deployability as services can be rolled out to production individually, more frequently, and more easily rolled back.
+
+    From a technical perspective, microservices are beneficial when high redundancy and failure tolerance are needed as it allows microservices to fail without bringing down the entire system and new instances of the microservice can be quickly spun up. This amounts to reducing \emph{blast radius} when something
+    goes wrong: if the services that serve a web frontend and process payments do
+    not depend on each other, we can keep processing payments even if we are unable
+    to serve a specific web page~\cite{blastRadius}.
+
+% Does this deserve its own section?
+
+
+    \section{Blockchain.com: Distributing to Scale up}
+    \textit{Blockchain.com} uses a coarse-grained architecture where some of the microservices can be very big
+    (such as the retail API gateway) -- these large microservices are called \emph{core} services and are further split into modules.
+    This results in a hybrid of microservices with a couple monoliths.
+    When adding a new feature, depending on its scope and what data it needs, it is either built into a microservice or simply inside an existing core service.
+    If, further down the line, it is decided it needs to grow further, it can get moved out of a core service into a new microservice.
+
+    This is often the case when a feature becomes large enough to deserve its own engineer owners.
+    This happened with a `crypto brokerage' service which got split off from a core service~\cite{bcBrokerageSplit}.
+    In this example, the main motivation for seeking further distribution was to achieve more fine-grained deployability (brokerage was getting releases more often than the core, and we wanted to be able to roll back one without rolling back the other) and to partition the retail team (which had grown too big) to have a new separate brokerage team.
+
+
+    \section{The Price of Further Distributing}
+
+    A problem that arises when distributing is strong coupling between services because of library dependencies. Even when APIs are well defined (say, via gRPC), when performing a change it is crucial it does not modify that API: otherwise one must update every one of the API clients and deploy those services in sync, effectively missing out on the advantages of distributed architectures (resulting in a `distributed monolith').
+    The only solution to this is problem is well-defined boundaries within services, which are hard to determine before building a product and very expensive to redraw once the services are in production.
+
+    The costs of maintaining consistency are also exacerbated with regards to the data management as it is now split between different microservices.
+    Operations that in a monolith might have been simple, such as joining two tables, can now be much more costly to run as services must reconcile data from different sources.
+
+    Moving towards a microservices architecture is not simple and has many pitfalls.
+    If services are too coupled, it can tend towards a distributed monolith architecture where one service going down triggers a domino effect which brings down the entire system, much like a monolith.
+
+
+    \section{Conclusion}
+
+    Microservices are not to be viewed as a single option but rather as a wide spectrum between the monolith and the fully microserviced architecture.
+    They can answer needs for availability, scalability, and team partitioning;
+    but at the cost of consistency and simplicity -- companies should ask themselves whether it's needed at all and if so how much they are willing to pay.
+
+    \printbibliography
+\end{document}
