@@ -50,12 +50,12 @@
 % according to specific needs.
     \begin{abstract}
         Blockchain is a crypto finance house that scaled fivefold in
-        employees in less than a couple of years.
-        This article looks into the challenges it faced scaling up human and
+        employees in less than a couple of years, and is growing still.
+        This article looks into the challenges it faces scaling up human and
         technical resources (mostly drawing from personal experience) and reflects
-        on what worked well and what did not.
+        on what works well -- and what does not!
 
-        Topics covered include microservices, combining agile with a regulated environment, the organisation's topology, Conway's Law, and SRE.
+        Topics covered include microservices, combining agile with a regulated environment, the organisation's topology, Conway's Law, SRE, and incident response.
     \end{abstract}
 
 
@@ -145,7 +145,7 @@
         have to bother with mechanisms like leader election.
         \footnote{\textbf{Leader Election} is a mechanism where a cluster of servers agree on a
         `leader' among them to run tasks that cannot be parallelized~\cite{attiya2004distributed}.}
-    \end{itemize}\\
+    \end{itemize}\
 
     In practice, always running more than a single instance of a service from the start is a mostly
     successful policy, but there are some downsides.
@@ -167,7 +167,6 @@
     it can take more than 40 minutes for the old containers to be completely phased out.
     This makes updating urgent issues in production much slower than if old containers were stopped
     straight away.
-
 
     \subsection{Growing in a Financial Regulated Environment}\label{subsec:regulated}
 
@@ -195,6 +194,8 @@
     pass around.
     This means that then we must deal with different serialisation versions and worry about
     backwards compatibility between them.
+
+
     \section{Scaling Up People}
 
     \subsection{Microservices to Restructure Teams}
@@ -226,6 +227,8 @@
     them as actors which go through state transitions.
     Events that trigger these transitions are just messages passed around between actors.
 
+    \phantomsection
+    \label{para:busFactor}
     The ultimate purpose of introducing UL was to be able to transmit and persist knowledge
     effectively, because Blockchain had what we called a strong `bus
     factor'~\cite{bowlerTruckFactor} -- meaning that if a few, knowledgeable team members got hit by
@@ -245,7 +248,6 @@
     But having to design a state machine can be tedious for simple cases, and
     for complex ones it can be too time-consuming (some FSMs have `sub-FSMs' when they are too large
     to put in a single document!).
-
     Additionally, most developers are very used to classical object-oriented programming and some
     struggle to write in an actor model at first -- it is also harder to find new hires that know the
     paradigm well.
@@ -259,7 +261,7 @@
 
     Around June 2020, Blockchain decided to adopt Squads to organise their teams.
     The variation of squads they adopted includes a Product Owner and a Tech lead, as well as cross-functional representatives of other teams (such as Platform, Mobile, Marketing, etc).
-    This organisation is similar to the one Spotify presents in~\cite{spotifySquads}, with some key differences:
+    This organisation is similar to the one Spotify presents in~\cite{spotifySquads}, with some key differences (depicted in Fig.~\ref{fig:squad}):
     \begin{itemize}
         \item The presence of the Tech Lead (TL).
         They are responsible for making important technical decisions (typically the ones involving compromises in cost or tech debt), coordinating engineers of different domains within a squad, and deciding which engineers are needed for this squad (this involves negotiating resources and priorities with other TLs).
@@ -272,19 +274,26 @@
         \item A person can belong in more than a single squad.
     \end{itemize}
 
-    Motivations for this significant re-shuffling were that traditional teams had become too large to coordinate internally.
-    For example, before the migrating to squads the retail backend team (a subset of the much larger platform team) had 10 members involved in daily stand-ups.
-    Such meetings only became bothersome to the team after it grew bigger than its 4 original members.
-    After squads, this daily stand-up became a much more informal weekly guild meeting.
-
-    % TODO pickup
-
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.94\columnwidth]{bcSquads}
         \caption{Squad Structure at Blockchain}
         \label{fig:squad}
     \end{figure}
+
+    Motivations for this significant re-shuffling were that traditional teams had become too large to coordinate internally and that communication had become much trickier in the face of remote work.
+    For example, before the migrating to squads the retail backend team (a subset of the much larger platform team) had 10 members involved in daily stand-ups.
+    Such meetings only became bothersome to the team after it grew bigger than its 4 original members.
+    After squads, this daily stand-up became a much more informal weekly guild meeting.
+
+    Squads also make it easier to reason about the resources allocated for a specific goal, because they are teams built around such goals.
+    As such, to allocate and distribute resources as the company's priorities change, people often get shuffled around between squads depending on where manpower is needed.
+    Adopting squads worked well and this shows in that Blockchain is now a remote-first company which does not intend to go back to relying on having most of its staff in its offices.
+    The main office in London shut down, and has been replaced by a much smaller one mainly composed of meeting rooms instead of desks, which staff are free to use should they wish to meet face-to-face.
+
+    Difficulties associated with this transformation include difficulties organising large amounts of resources for projects.
+    When the need for a new squad arises (because a new feature must be built, for example) staff can get allocated to it without but not getting deallocated from other squads.
+    This results in an engineer reporting to two POs as well as a LM and sometimes struggling to reconcile their respective priorities.
 
     \subsection{Operations Responsibilities and SRE}
 
@@ -325,14 +334,37 @@
     In particular, when a bug arises, it can be hard to determine if the root cause is at the application level (the side managed by devs: Kafka, serialisation, business logic, etc.) or at the networking level (managed by SRE).
     When this situation arises, at least one engineer from both teams is required to safely be able to rule out one or the other.
 
+
     \section{Incident Response}\label{sec:incident-response}
 
-    Production incident response is one of the areas where Blockchain struggles to achieve results the team is satisfied with.
+    Production incident response is one of the areas where Blockchain struggles to achieve results the team is fully satisfied with.
 
-    
+    Application monitoring is something the company started relatively doing early on and does work well: when writing new code reviewers always encourage adding metrics, which are persisted during runtime in real-time.
+    The data can then be read and aggregated by an internal web client every engineer has access to (in our case, \textit{Graphana}~\cite{grafana}).
+    Additionally, we perform Application Performance Monitoring (APM) thanks to a tool (specifically, \textit{Datadog}~\cite{datadogApm}) that hooks up to runtimes and performs additional real-time tracing and profiling of code segments as well as individual network requests.
+    This practice of `If it moves, we track it', first developed by Etsy~\cite{etsyStatsd}, allows a great deal of observability into the platform's stability, throughput, availability, and most importantly, how it is performing with respect to its Service Level Objectives (SLOs).
+    Alerting is then set up for these metrics, and the on-call engineer is paged when SLOs are not met.
+    Notice the use of \emph{aggregate-driven} monitoring instead of \emph{event-driven} monitoring.
+
+    By default, every platform engineer is on call and in the same rota (meaning they take turns in 12-hour shifts) -- this is the case because engineers change between squads and services often and maintaining rotas that reflect this has proven difficult.
+    When an alert comes through, the responder triages if necessary: they escalate to a different team, page someone else, or defer until office hours in their timezone.
+    While the alerting is therefore very relevant, and the observability crucial when debugging during and incident, incident response is not satisfactory for the following couple of reasons.
+    Firstly, engineers get paged about services they are unfamiliar with.
+    This happens because the on-call rota concerns a lot of services, so response often involves in escalation to a different engineer with more knowledge in the area.
+    It is another strong symptom of Blockchain's `bus factor' (see~\ref{para:busFactor}).
+    Secondly, engineers get paged often.
+    This is a result of having plenty of analytics and alerting in place, resulting in spurious issues triggering possibly irrelevant alerts.
+    Consequently, alerts get revised often and `known' ones can even get ignored.
+
+    No obvious solutions exist for these issues, which have arisen from the fact the incident response process has remained largely unchanged as the platform team grew.
+    Partitioning the on-call rota is costly because it must then be maintained as developers jump from one microservice to another (which often happens informally).
+    Creating a separate team specialised in incident response is a possibility that has been considered and then discarded: responders would have even less knowledge on the systems they have to fix because they would be less likely to be the same people that routinely maintain them (further suffering from the strong `bus factor').
 
 
-    \section{In Retrospective}
+    \section{In Retrospective}\label{sec:conclusion}
+
+    While Blockchain is an organisation with plenty of both technical and structural issues, it has adapted relatively well to the extremely rapid growth it has seen.
+    This growth has happened in the complicated environment of the extremely volatile cryptocurrency markets it operates in and with additional constraints such as tight regulation, remote work, and costly downtime.
 
     \printbibliography
 \end{document}
