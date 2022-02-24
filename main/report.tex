@@ -292,7 +292,7 @@
     The main office in London shut down, and has been replaced by a much smaller one mainly composed of meeting rooms instead of desks, which staff are free to use should they wish to meet face-to-face.
 
     Difficulties associated with this transformation include difficulties organising large amounts of resources for projects.
-    When the need for a new squad arises (because a new feature must be built, for example) staff can get allocated to it without but not getting deallocated from other squads.
+    When the need for a new squad arises (because a new feature must be built, for example) staff can get allocated to it without getting deallocated from other squads.
     This results in an engineer reporting to two POs as well as a LM and sometimes struggling to reconcile their respective priorities.
 
     \subsection{Operations Responsibilities and SRE}
@@ -315,7 +315,7 @@
     The structure of SRE within the company is portrayed in Fig.~\ref{fig:sre}.
     I personally found this organisation very productive for the following reasons:
     \begin{itemize}
-        \item Developers maintain important operations responsibilities and own the CI pipeline (critical in the release process).
+        \item Developers maintain some important operations responsibilities and own the CI pipeline (critical in the release process).
         \item Developers do not need to worry about maintaining a significant part of the stack that is hidden away from them: SRE takes care of things like DNS, load balancing between instances of the same service, negotiating resources with cloud providers and maintenance of on-premises infrastructure.
         \item Developers still have freedom to achieve their desired setups without compromising with friction, and this is reflected in the diversity of practices across teams.
         Some teams perform Continuous Delivery (where the code in the \texttt{master} branch corresponds to the microservice in production), others perform releases manually via the CLI; some run JVM services, others Rust or C++;
