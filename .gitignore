@@ -44,9 +44,8 @@
 # latexrun
 latex.out/
 .idea/
-out/
 
-!out/*pdf
+!**/out/*.pdf
 
 ## Auxiliary and intermediate files from other packages:
 # algorithms

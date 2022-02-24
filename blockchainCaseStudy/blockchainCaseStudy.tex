@@ -59,7 +59,7 @@
     \end{abstract}
 
 
-    \section{Blockchain's Size, Business Model and Stack}\label{sec:business}
+    \section{Blockchain's Size and Business Model}\label{sec:business}
 
     I have worked at Blockchain for little under 2 years and during that time I was able to observe
     how the company went from about \textbf{110 employees to more than 500} at the time of writing (with many
@@ -89,36 +89,24 @@
 
     Something the team noticed about the core services around 2019 is that when they were large
     enough, compilation and testing times were no longer negligible: from a commit in a feature
-    branch being pushed, it took 50 minutes for the retail core service to compile and test
+    branch being pushed, it took 50 minutes for the retail core service to compile and test~\footnote{
+        Causes for the slow compilation time include code generation and annotation processing that were involved in the process.
+    }
     (after which the branch could be merged into \texttt{master}).
     After the merge, CI took another 50 minutes to test and build again (the new merge commit
     may not be building the exact same artifact as the previous test run) to produce
     the docker image that could then be deployed.
 
-    Developers also need to get two approving reviews in order to merge, so overall we would
-    expect around two hours from the moment we pushed a commit to the moment we were able to deploy it.
-    This is, of course, assuming the commit was good straight away: if the CI runs reported
-    test failures, at least another 50m had to be accounted for.
-    % TODO citation
-    The causes of the problem were mainly large codebases in Kotlin (which did not compile very fast in version 1.3)
-    and the fact that code generation was involved in the building process.
+    Developers also need to get two approving reviews in order to merge, so overall we would expect at least two hours from the moment we pushed a commit to the moment we were able to deploy it.
+    These delays greatly hindered our ability to perform incident response, test-driven development (local testing took just as long), and quick iterating in general.
 
-    It was in order to mitigate this that modules were introduced in the core services, making them
-    as small as possible.
-    The modules are dynamically linked (due to the nature of the JVM) and so compilation artifacts
-    can now be cached for each module in CI persistent storage, which is hosted by a cloud provider
-    and scaled dynamically with the number of concurrent builds.
+    It was in order to mitigate this that modules were introduced in the core services, making them as small as possible.
+    The modules are dynamically linked and so compilation artifacts can now be cached for each module in CI persistent storage, which is hosted by a cloud provider and scaled dynamically with the number of concurrent builds.
+    Therefore, when modifying a module, developers only need to wait for that module's compilation, its tests, and the integration tests -- binaries and test results from other modules are reused.
+    Additionally, developers' build tools are given remote read access to the build cache, so their local compilation times also massively improved.
 
-    Therefore, when modifying a module, developers only need to wait for that module's compilation,
-    its tests, and the integration tests -- binaries and test results from other modules are reused.
-    Additionally, developers' build tools (in this case~\emph{Gradle}~\cite{gradle.org}) are given remote read
-    access to the build cache, so their local compilation times also massively improved.
-
-    After the modularisation of the core services and the implementation of the build cache, builds
-    improved dramatically (most commonly down to 10 minutes per build) both locally and on CI, and
-    core services became much easier to break up.
-    This shows Blockchain leveraging cloud to scale tooling (not servers in production) that speeds
-    up iteration -- and therefore shortens the feedback loop for a feature.
+    After the modularisation of the core services and the implementation of the build cache, builds improved dramatically (most commonly down to 10 minutes per build) both locally and on CI, and core services became much easier to break up.
+    This shows Blockchain leveraging modularisation and cloud to scale tooling that speeds up iteration -- and therefore shortens the feedback loop for a feature and facilitates practices such as TDD\@.
 
     \subsection{Zero-downtime}
 
@@ -304,14 +292,6 @@
     At Blockchain, SRE builds automated tooling that allows developers to deploy and maintain their services, but devs maintain the responsibilities of production incident response, pipeline development, releases, provisioning, etc.
     In general, SRE works \emph{as-a-service}, while also assisting for specialised setups.
 
-    \begin{figure}[h]
-        \centering
-        \includegraphics[width=0.67\columnwidth]{sreAsAService}
-        \caption{SRE interactions with other teams\footnotemark}
-        \label{fig:sre}
-    \end{figure}
-    \footnotetext{Not meant to properly represent a topology under Kelton's model~\cite{skelton2019topologies}.}
-
     The structure of SRE within the company is portrayed in Fig.~\ref{fig:sre}.
     I personally found this organisation very productive for the following reasons:
     \begin{itemize}
@@ -328,6 +308,14 @@
         A good example is the markets team, which exceptionally pins threads to individual CPUs and performs networking bypassing the kernel in order to achieve minimal latencies.
         \item SRE have plenty of technical background to understand the cost needs of developers and negotiate compromises accordingly.
     \end{itemize}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.67\columnwidth]{sreAsAService}
+        \caption{SRE interactions with other teams\footnotemark}
+        \label{fig:sre}
+    \end{figure}
+    \footnotetext{Not meant to properly represent a topology under Kelton's model~\cite{skelton2019topologies}.}
 
     Having a separate SRE team that manages lots of operational aspects of the company does include some downsides.
     The entire stack is not managed by developers which means they lack in-depth understanding of the technologies involved, which can make debugging harder.
@@ -348,7 +336,8 @@
 
     By default, every platform engineer is on call and in the same rota (meaning they take turns in 12-hour shifts) -- this is the case because engineers change between squads and services often and maintaining rotas that reflect this has proven difficult.
     When an alert comes through, the responder triages if necessary: they escalate to a different team, page someone else, or defer until office hours in their timezone.
-    While the alerting is therefore very relevant, and the observability crucial when debugging during and incident, incident response is not satisfactory for the following couple of reasons.
+
+    While the alerting is therefore very relevant, and the observability crucial when debugging during an incident, incident response is not satisfactory for the following couple of reasons.
     Firstly, engineers get paged about services they are unfamiliar with.
     This happens because the on-call rota concerns a lot of services, so response often involves in escalation to a different engineer with more knowledge in the area.
     It is another strong symptom of Blockchain's `bus factor' (see~\ref{para:busFactor}).
@@ -356,7 +345,7 @@
     This is a result of having plenty of analytics and alerting in place, resulting in spurious issues triggering possibly irrelevant alerts.
     Consequently, alerts get revised often and `known' ones can even get ignored.
 
-    No obvious solutions exist for these issues, which have arisen from the fact the incident response process has remained largely unchanged as the platform team grew.
+    No obvious solutions exist for these issues, which partly have arisen from the fact the incident response process has remained largely unchanged as the platform team grew.
     Partitioning the on-call rota is costly because it must then be maintained as developers jump from one microservice to another (which often happens informally).
     Creating a separate team specialised in incident response is a possibility that has been considered and then discarded: responders would have even less knowledge on the systems they have to fix because they would be less likely to be the same people that routinely maintain them (further suffering from the strong `bus factor').
 
@@ -364,7 +353,7 @@
     \section{In Retrospective}\label{sec:conclusion}
 
     While Blockchain is an organisation with plenty of both technical and structural issues, it has adapted relatively well to the extremely rapid growth it has seen.
-    This growth has happened in the complicated environment of the extremely volatile cryptocurrency markets it operates in and with additional constraints such as tight regulation, remote work, and costly downtime.
+    This growth has happened in the complicated environment of the extremely volatile cryptocurrency markets it operates in and with additional constraints such as tight regulation, remote work, costly downtime, and challenging technical problems in general.
 
     \printbibliography
 \end{document}
