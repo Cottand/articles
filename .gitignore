@@ -43,6 +43,10 @@
 ## Build tool directories for auxiliary files
 # latexrun
 latex.out/
+.idea/
+out/
+
+!out/*pdf
 
 ## Auxiliary and intermediate files from other packages:
 # algorithms
