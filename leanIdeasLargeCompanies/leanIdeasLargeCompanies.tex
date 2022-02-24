@@ -23,10 +23,10 @@
 % These packages must be at the end
 \usepackage[nolist,nohyperlinks]{acronym}
 \usepackage{cleveref}
-\graphicspath{{images/}}
 
 % Remove section first paragraph indent
 \usepackage{titlesec}
+\usepackage[nodayofweek]{datetime}
 \titlespacing*{\section}{0pt}{*1}{*1}
 \titlespacing*{\subsection}{0pt}{*1}{*1}
 \renewcommand{\thesubsubsection}{\arabic{subsubsection}}
@@ -40,7 +40,8 @@
 % Document begins here
 \begin{document}
 
-    \author{Anonymous for Review}
+    \author{William Profit and Nicolas D'Cotta --
+    \formatdate{24}{02}{2022} \emph{(last modified~\today)}}
 
 % Create the title.
     \maketitle
