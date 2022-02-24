@@ -168,19 +168,33 @@
     This makes updating urgent issues in production much slower than if old containers were stopped
     straight away.
 
-    \subsection{Even-Driven Services}
 
-    \texttt{TODO do only if covered in course?}
+    \subsection{Growing in a Financial Regulated Environment}\label{subsec:regulated}
 
-    For reasons described in~\ref{subsec:ul}, lots of services are modeled after Finite State
-    Machines.
-    This encourages developers to think of their applications as things that `wait for events'
-    rather than things that `are called', allowing for an \emph{event-driven}
-    design~\cite{fowlerEventDriven}.
+    As a company operating in the finance industry, which is heavily regulated, and dealing
+    with large monetary amounts;
+    consistency, reliability, and accountability are at the top of Blockchain's priorities.
 
-    This provide some benefits, like \emph{Event-Sourcing} (discussed in~\ref{sec:regulated}).
+    For reasons explained in~\ref{subsec:ul}, we write actor-oriented code.
+    This makes reasoning about capturing events easy (an event is simply a message!) and allows
+    implementing Event Sourcing~\cite{fowlerES} on critical monetary services (like the ledger).
 
+    Event Sourcing allows resiliency and consistency without having to resort to transactionality
+    or retries: messages are persisted and replayed on service restarts or crashes.
+    It also enables a very transparent audit trail of everything happening inside services -- one
+    can just look at the persisted events.\\
 
+    While in theory Event Sourcing provides many benefits, in practice it proved very costly to
+    implement.
+    Very critical old code had to be re-written in an actor-oriented fashion, persisting messages
+    adds runtime overhead, replaying them makes service startups much slower, and serialisation has
+    to be implemented for events.
+    Serialisation in particular involves a lot of boilerplate code for each message class.
+
+    To add to the complexity, modifying a state machine often involves changing the messages actors
+    pass around.
+    This means that then we must deal with different serialisation versions and worry about
+    backwards compatibility between them.
     \section{Scaling Up People}
 
     \subsection{Microservices to Restructure Teams}
@@ -239,7 +253,7 @@
     states resulting from their failures) requires large amounts of boilerplate -- code that
     traditionally would have been a simple \emph{try-catch} in Kotlin or Java.
 
-    \subsection{\textsc{COVID-19} and Remote Work}
+%    \subsection{\textsc{COVID-19} and Remote Work} TODO what would I say
 
     \subsection{Squads and Organisation Topology}\label{subsec:squads}
 
@@ -267,7 +281,7 @@
 
     \begin{figure}[h]
         \centering
-        \includegraphics[width=0.9\columnwidth]{bcSquads}
+        \includegraphics[width=0.94\columnwidth]{bcSquads}
         \caption{Squad Structure at Blockchain}
         \label{fig:squad}
     \end{figure}
@@ -278,25 +292,18 @@
     The Site Reliability Engineering team (SRE) is a specialised team of developers that aims to facilitate this.
     The practice was originally pioneered by Google~\cite{googleSreIntro} and Blockchain follows it at a smaller scale.
 
-    At Blockchain, SRE builds tooling that allows developers to deploy and maintain their services, but devs maintain the responsibilities of production incident response, pipeline development, releases, provisioning, etc.
-
-    This will be more easily illustrated by example.
-    If a developer wishes to set up a new microservice, they create the git
-    repository themselves and write a CI pipeline configuration.
-    To `activate' the pipeline, SRE provides a tool that allows using this configuration in Blockchain's cluster (something the dev does not need to worry about).
-    The developer may then make a pull request (PR) to a special configuration repository managed by SRE\@.
-    The PR mostly contains simple information like the name of the new service, the resources it needs, and a Docker repository where container images are hosted.
-    Once merged and approved by an SRE member, the service is considered \emph{provisioned}, meaning that there are now servers ready to run its Docker image.
-    The developer can then deploy such an image (ideally built in the CI pipeline) by using a CLI tool (developed by SRE) that specifies the image tag.
+    At Blockchain, SRE builds automated tooling that allows developers to deploy and maintain their services, but devs maintain the responsibilities of production incident response, pipeline development, releases, provisioning, etc.
+    In general, SRE works \emph{as-a-service}, while also assisting for specialised setups.
 
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.67\columnwidth]{sreAsAService}
-        \caption{SRE interactions with other teams}
+        \caption{SRE interactions with other teams\footnotemark}
         \label{fig:sre}
     \end{figure}
+    \footnotetext{Not meant to properly represent a topology under Kelton's model~\cite{skelton2019topologies}.}
 
-    The structure of SRE within the company is informally portrayed in Fig.~\ref{fig:sre}.
+    The structure of SRE within the company is portrayed in Fig.~\ref{fig:sre}.
     I personally found this organisation very productive for the following reasons:
     \begin{itemize}
         \item Developers maintain important operations responsibilities and own the CI pipeline (critical in the release process).
@@ -309,38 +316,20 @@
         In practice, having an SRE team feels a like having infrastructure as a service within the company.
         \item Teams can still achieve more complex setups with SRE as enablers
         if they desire.
-        A good example is the markets team, which pins threads to individual
-        CPUs and performs networking bypassing the kernel in order to achieve
-        minimal latencies.
+        A good example is the markets team, which exceptionally pins threads to individual CPUs and performs networking bypassing the kernel in order to achieve minimal latencies.
+        \item SRE have plenty of technical background to understand the cost needs of developers and negotiate compromises accordingly.
     \end{itemize}
 
+    Having a separate SRE team that manages lots of operational aspects of the company does include some downsides.
+    The entire stack is not managed by developers which means they lack in-depth understanding of the technologies involved, which can make debugging harder.
+    In particular, when a bug arises, it can be hard to determine if the root cause is at the application level (the side managed by devs: Kafka, serialisation, business logic, etc.) or at the networking level (managed by SRE).
+    When this situation arises, at least one engineer from both teams is required to safely be able to rule out one or the other.
 
-    \section{Growing in a Financial Regulated Environment}\label{sec:regulated}
+    \section{Incident Response}\label{sec:incident-response}
 
-    As a company operating in the finance industry, which is heavily regulated, and dealing
-    with large monetary amounts;
-    consistency, reliability, and accountability are at the top of Blockchain's priorities.
+    Production incident response is one of the areas where Blockchain struggles to achieve results the team is satisfied with.
 
-    Adopting FSMs means we write actor-oriented code.
-    This makes reasoning about capturing events easy (an event is simply a message!) and allows
-    implementing Event Sourcing~\cite{fowlerES} on critical monetary services (like the ledger).
-
-    Event Sourcing allows resiliency and consistency without having to resort to transactionality
-    or retries: messages are persisted and replayed on service restarts or crashes.
-    It also enables a very transparent audit trail of everything happening inside services -- one
-    can just look at the persisted events.\\
-
-    While in theory Event Sourcing provides many benefits, in practice it proved very costly to
-    implement.
-    Very critical old code had to be re-written in an actor-oriented fashion, persisting messages
-    adds runtime overhead, replaying them makes service startups much slower, and serialisation has
-    to be implemented for events.
-    Serialisation in particular involves a lot of boilerplate code for each message class.
-
-    To add to the complexity, modifying a state machine often involves changing the messages actors
-    pass around.
-    This means that then we must deal with different serialisation versions and worry about
-    backwards compatibility between them.
+    
 
 
     \section{In Retrospective}
