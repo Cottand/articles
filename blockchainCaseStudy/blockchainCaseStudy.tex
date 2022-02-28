@@ -24,8 +24,6 @@
 % These packages must be at the end
 \usepackage[nolist,nohyperlinks]{acronym}
 \usepackage{cleveref}
-\graphicspath{{images/}}
-
 % Remove section first paragraph indent
 \usepackage{titlesec}
 \titlespacing*{\section}{0pt}{*1}{*1}
@@ -51,9 +49,7 @@
     \begin{abstract}
         Blockchain is a crypto finance house that scaled fivefold in
         employees in less than a couple of years, and is growing still.
-        This article looks into the challenges it faces scaling up human and
-        technical resources (mostly drawing from personal experience) and reflects
-        on what works well -- and what does not!
+        This article looks into the challenges it faces scaling up human and technical resources (mostly drawing from personal experience) and reflects on what works well (and what does not!) as well as how the solutions to these challenges interact with one another.
 
         Topics covered include microservices, combining agile with a regulated environment, the organisation's topology, Conway's Law, SRE, and incident response.
     \end{abstract}
@@ -79,7 +75,7 @@
     \section{Scaling Up Systems}
     We call the larger services \emph{core services}, and they are further split into modules.
 
-    This results in a hybrid of microservices with a couple monoliths.
+    This results in a hybrid of microservices with a couple large services.
     When adding a new feature, depending on its scope and the data it needs, it is either built into
     a microservice or simply inside an existing core service.
     If, further down the line, it is decided it needs to grow further, it can get moved out of a
@@ -105,8 +101,8 @@
     Therefore, when modifying a module, developers only need to wait for that module's compilation, its tests, and the integration tests -- binaries and test results from other modules are reused.
     Additionally, developers' build tools are given remote read access to the build cache, so their local compilation times also massively improved.
 
-    After the modularisation of the core services and the implementation of the build cache, builds improved dramatically (most commonly down to 10 minutes per build) both locally and on CI, and core services became much easier to break up.
-    This shows Blockchain leveraging modularisation and cloud to scale tooling that speeds up iteration -- and therefore shortens the feedback loop for a feature and facilitates practices such as TDD\@.
+    After the modularisation of the core services and the implementation of the build cache, builds improved dramatically (most commonly down to 10 minutes per build) both locally and on CI, and core services became much easier to break up -- although, interestingly, that was not the main motivation behind the refactor.
+    This shows Blockchain leveraging modularisation and cloud to scale tooling that speeds up iteration -- and therefore shortens the feedback loop with customers for a feature (in line with Lean practices) and facilitates practices such as TDD\@.
 
     \subsection{Zero-downtime}
 
@@ -114,7 +110,7 @@
     Therefore, downtime translates to losses for the business, so zero-downtime deployability is
     very desirable.
 
-    While there is no company-wide policy, the platform team tries to have always 2 instances
+    While there is no company-wide policy, the platform team tries to always have 2 instances
     of every service running at all times.
     This allows for the following:
 
@@ -130,9 +126,9 @@
         \entry{Stateless Services} -- developers are aware that whatever new service they are
         writing, it will most likely be running two instances from the start.
         This encourages (but does not force) engineers to write stateless services, so they will not
-        have to bother with mechanisms like leader election.
-        \footnote{\textbf{Leader Election} is a mechanism where a cluster of servers agree on a
-        `leader' among them to run tasks that cannot be parallelized~\cite{attiya2004distributed}.}
+        have to bother with mechanisms like leader election\footnote{
+            \textbf{Leader Election} is a protocol where a cluster of servers agree on a
+            `leader' among them, commonly to run tasks that cannot be parallelized~\cite{attiya2004distributed}.}.
     \end{itemize}\
 
     In practice, always running more than a single instance of a service from the start is a mostly
@@ -153,7 +149,7 @@
     all instances are updated at once.
     For services that take a long time to start up (5 minutes) and have lots of instances (say 15)
     it can take more than 40 minutes for the old containers to be completely phased out.
-    This makes updating urgent issues in production much slower than if old containers were stopped
+    This makes fixing urgent issues in production via deployments much slower than if old containers were stopped
     straight away.
 
     \subsection{Growing in a Financial Regulated Environment}\label{subsec:regulated}
@@ -164,24 +160,21 @@
 
     For reasons explained in~\ref{subsec:ul}, we write actor-oriented code.
     This makes reasoning about capturing events easy (an event is simply a message!) and allows
-    implementing Event Sourcing~\cite{fowlerES} on critical monetary services (like the ledger).
+    implementing Event Sourcing (ES)~\cite{fowlerES} on critical monetary services (like the ledger).
 
     Event Sourcing allows resiliency and consistency without having to resort to transactionality
     or retries: messages are persisted and replayed on service restarts or crashes.
     It also enables a very transparent audit trail of everything happening inside services -- one
-    can just look at the persisted events.\\
+    can just look at the persisted events.
 
-    While in theory Event Sourcing provides many benefits, in practice it proved very costly to
-    implement.
-    Very critical old code had to be re-written in an actor-oriented fashion, persisting messages
-    adds runtime overhead, replaying them makes service startups much slower, and serialisation has
-    to be implemented for events.
+    While in theory ES provides many benefits, in practice it proved very costly to implement.
+    Very critical old code had to be re-written in an actor-oriented fashion, persisting messages adds runtime overhead, replaying them makes service startups much slower (an issue exacerbated by Blue/Green deployments), and serialisation has to be implemented for events.
     Serialisation in particular involves a lot of boilerplate code for each message class.
-
     To add to the complexity, modifying a state machine often involves changing the messages actors
     pass around.
     This means that then we must deal with different serialisation versions and worry about
     backwards compatibility between them.
+    While the problems listed are very painful to deal with, they are a price the team willingly pays for the guarantees ES brings.
 
 
     \section{Scaling Up People}
@@ -189,16 +182,16 @@
     \subsection{Microservices to Restructure Teams}
 
     Moving a module inside a core service out to its own microservice can happen as the team that
-    owns the monolith grows and needs to be partitioned.
+    owns the macroservice grows and needs to be partitioned.
     This is the case when a feature becomes large enough to deserve its own engineer owners.
 
     This happened with a `crypto brokerage' service which got split off from the retail core
     service.
     Aside from partitioning the retail team in order to from a new brokerage team, the other goal of
-    this migration was to achieve more fine-grained deployability (brokerage was getting releases
+    this migration was to achieve more fine-grained deployability: brokerage was getting releases
     more often than the core, and we wanted to be able to roll back one without rolling back the
-    other -- this allowed the two teams to not step on each other's toes).
-    This shows Blockchain trying to leverage Conway's Law~\cite{conwayLaw}.\\
+    other -- this allowed the two teams to not step on each other's toes.
+    This shows Blockchain trying to leverage Conway's Law~\cite{conwayLaw}.
 
     \subsection{Ubiquitous Language}\label{subsec:ul}
 
@@ -208,9 +201,7 @@
     the process for withdrawing crypto from the exchange).
     This from of communication should be understood by engineers as well as the product team.
 
-    Flows are represented as Finite State Machine (FSM) diagrams, designed to have well-named states and
-    state transitions depending on each interaction with the user, other microservices, and external
-    services.
+    The UL we use to represent Flows are Finite State Machine (FSM) diagrams, designed to have well-named states and state transitions depending on each interaction with the user, other microservices, and external services.
     Forcing some backend teams to think of flows as Finite State Machines allows implementing
     them as actors which go through state transitions.
     Events that trigger these transitions are just messages passed around between actors.
@@ -222,22 +213,22 @@
     factor'~\cite{bowlerTruckFactor} -- meaning that if a few, knowledgeable team members got hit by
     a bus, then the company would be in serious trouble.
     The reason for this was probably a mix of high rotation of employees due to varying competitive
-    salaries in the crypto industry (so team members that remained became senior very quickly) and
+    salaries in the crypto industry (so team members that remained gained seniority very quickly) and
     complex critical legacy code that only some understood.
 
     While the idea of UL is nothing new (\cite{evansDomainDrivenDesignUL} is from 2004) I personally
     think Blockchain took an innovative approach in that they took it to the extreme by using FSMs
     and diagrams and exposing product to them, rather than simply conforming to \emph{`a common [...]
-        language between developers and users'} (as described by Martin Fowler in~\cite{fowlerUL}).\\
+        language between developers and users'} (as described by Martin Fowler in~\cite{fowlerUL}).
 
     The idea of Ubiquitous Language was successful, to some extent.
-    Drawing Finite State Machine diagrams do make it very easy to communicate a flow or a feature while
+    Finite State Machine diagrams do make it very easy to communicate a flow or a feature while
     accounting for every single edge case and interaction.
     But having to design a state machine can be tedious for simple cases, and
     for complex ones it can be too time-consuming (some FSMs have `sub-FSMs' when they are too large
     to put in a single document!).
-    Additionally, most developers are very used to classical object-oriented programming and some
-    struggle to write in an actor model at first -- it is also harder to find new hires that know the
+    Additionally, most developers are very used to classical object-oriented programming, and at first it is time-consuming to train them
+    to write in an actor model -- it is also harder to find new hires that know the
     paradigm well.
     Furthermore, having to represent state transitions for every single side effect and call (and the
     states resulting from their failures) requires large amounts of boilerplate -- code that
@@ -248,13 +239,13 @@
     \subsection{Squads and Organisation Topology}\label{subsec:squads}
 
     Around June 2020, Blockchain decided to adopt Squads to organise their teams.
-    The variation of squads they adopted includes a Product Owner and a Tech lead, as well as cross-functional representatives of other teams (such as Platform, Mobile, Marketing, etc).
+    The variation of squads they adopted includes a Product Owner (PO) and a Tech Lead (TL), as well as cross-functional representatives of other teams (such as Platform, Mobile, Marketing, etc).
     This organisation is similar to the one Spotify presents in~\cite{spotifySquads}, with some key differences (depicted in Fig.~\ref{fig:squad}):
     \begin{itemize}
-        \item The presence of the Tech Lead (TL).
-        They are responsible for making important technical decisions (typically the ones involving compromises in cost or tech debt), coordinating engineers of different domains within a squad, and deciding which engineers are needed for this squad (this involves negotiating resources and priorities with other TLs).
+        \item The presence of the Tech Lead.
+        They are responsible for making important technical decisions (typically the ones involving compromises in cost or tech debt), coordinating engineers of different domains within a squad, and deciding which engineers are needed for this squad (this involves negotiating resources and priorities with TLs of other squads).
         \item No chapters.
-        \item Guild leads are Line Managers (LMs) of people in that guild.
+        \item Guild leads are Line Managers of people in that guild.
         For example, the brokerage team has a lead that manages around 4 engineers, distributed across squads.
         \item People can exist outside of squads, in specialised service teams.
         The ledger team is a good example of this: most of the daily work does not involve a PO but rather making sure it can scale up with company growth.
@@ -339,7 +330,7 @@
 
     While the alerting is therefore very relevant, and the observability crucial when debugging during an incident, incident response is not satisfactory for the following couple of reasons.
     Firstly, engineers get paged about services they are unfamiliar with.
-    This happens because the on-call rota concerns a lot of services, so response often involves in escalation to a different engineer with more knowledge in the area.
+    This happens because the on-call rota concerns a lot of services, so response often involves escalation to a different engineer with more knowledge in the area.
     It is another strong symptom of Blockchain's `bus factor' (see~\ref{para:busFactor}).
     Secondly, engineers get paged often.
     This is a result of having plenty of analytics and alerting in place, resulting in spurious issues triggering possibly irrelevant alerts.
