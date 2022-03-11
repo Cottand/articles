@@ -321,7 +321,7 @@
     Production incident response is one of the areas where Blockchain struggles to achieve results the team is fully satisfied with.
 
     Application monitoring is something the company started relatively doing early on and does work well: when writing new code reviewers always encourage adding metrics, which are persisted during runtime in real-time.
-    The data can then be read and aggregated by an internal web client every engineer has access to (in our case, \textit{Graphana}~\cite{grafana}).
+    The data can then be read and aggregated by an internal web client every engineer has access to (in our case, \textit{Grafana}~\cite{grafana}).
     Additionally, we perform Application Performance Monitoring (APM) thanks to a tool (specifically, \textit{Datadog}~\cite{datadogApm}) that hooks up to runtimes and performs additional real-time tracing and profiling of code segments as well as individual network requests.
     This practice of `If it moves, we track it', first developed by Etsy~\cite{etsyStatsd}, allows a great deal of observability into the platform's stability, throughput, availability, and most importantly, how it is performing with respect to its Service Level Objectives (SLOs).
     Alerting is then set up for these metrics, and the on-call engineer is paged when SLOs are not met.
